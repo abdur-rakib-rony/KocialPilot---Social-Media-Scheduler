@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Zap, Home, Calendar, Image, BarChart3, Settings } from "lucide-react";
+import { Zap, Home, Calendar, Image as IIImage, BarChart3, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import CreatePostDialog from "../features/posting/CreatePostDialog";
@@ -54,12 +54,7 @@ const Sidebar: React.FC = () => {
               variant="ghost"
               className="w-full justify-start h-10 hover:bg-accent"
             >
-              <Image
-                className="mr-3 h-4 w-4"
-                height={100}
-                width={100}
-                alt="Media Library"
-              />
+              <IIImage className="mr-3 h-4 w-4" />
               Media Library
             </Button>
           </div>
