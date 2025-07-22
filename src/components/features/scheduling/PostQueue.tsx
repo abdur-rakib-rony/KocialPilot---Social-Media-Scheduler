@@ -30,6 +30,7 @@ import {
   Facebook,
   Instagram,
 } from "lucide-react";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Post {
@@ -136,11 +137,11 @@ const PostQueue: React.FC = () => {
         setEditingPost(null);
       } else {
         console.error("Update failed:", result.error);
-        alert("Failed to update post: " + result.error);
+        toast.error("Failed to update post: " + result.error);
       }
     } catch (error) {
       console.error("Update error:", error);
-      alert("Failed to update post. Please try again.");
+      toast.error("Failed to update post. Please try again.");
     } finally {
       setIsUpdating(false);
     }
@@ -159,11 +160,11 @@ const PostQueue: React.FC = () => {
         fetchPosts();
       } else {
         console.error("Delete failed:", result.error);
-        alert("Failed to delete post: " + result.error);
+        toast.error("Failed to delete post: " + result.error);
       }
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Failed to delete post. Please try again.");
+      toast.error("Failed to delete post. Please try again.");
     }
   };
 
@@ -288,11 +289,17 @@ const PostQueue: React.FC = () => {
                   className="border rounded-lg p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex gap-4">
-                    <img
-                      src={post.image.url}
-                      alt={post.image.originalName}
-                      className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
-                    />
+                    {post.image ? (
+                      <img
+                        src={post.image.url}
+                        alt={post.image.originalName}
+                        className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 bg-gray-200 flex items-center justify-center rounded-lg text-gray-500 text-sm">
+                        No Image
+                      </div>
+                    )}
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between mb-2">

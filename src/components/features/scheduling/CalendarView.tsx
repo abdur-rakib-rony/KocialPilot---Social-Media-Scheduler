@@ -154,46 +154,45 @@ const CalendarView: React.FC = () => {
       }));
   }, [posts, filters]);
 
-
   const EventComponent = ({ event }: { event: CalendarEvent }) => {
     const PlatformIcon =
       PLATFORM_ICONS[event.resource.platform as keyof typeof PLATFORM_ICONS];
 
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="h-full w-full p-1 rounded text-xs overflow-hidden cursor-pointer">
-              <div className="flex items-center gap-1 mb-1">
-                <PlatformIcon className="h-3 w-3 flex-shrink-0" />
-                <Badge
-                  variant="outline"
-                  className={`text-xs px-1 py-0 ${STATUS_COLORS[event.resource.status]}`}
-                >
-                  {event.resource.status}
-                </Badge>
-              </div>
-              <div className="font-medium truncate">{event.title}</div>
-              <div className="text-xs opacity-75 truncate">
-                {moment(event.start).format("HH:mm")}
-              </div>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="space-y-1 max-w-xs">
-              <p className="font-medium">
-                {event.resource.finalCaption.substring(0, 100)}...
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {moment(event.start).format("MMM DD, YYYY HH:mm")}
-              </p>
-              <p className="text-xs">Platform: {event.resource.platform}</p>
-              <p className="text-xs">Status: {event.resource.status}</p>
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="h-full w-full p-1 rounded text-xs overflow-hidden cursor-pointer">
+                  <div className="flex items-center gap-1 mb-1">
+                    <PlatformIcon className="h-3 w-3 flex-shrink-0" />
+                    <Badge
+                      variant="outline"
+                      className={`text-xs px-1 py-0 ${STATUS_COLORS[event.resource.status]}`}
+                    >
+                      {event.resource.status}
+                    </Badge>
+                  </div>
+                  <div className="font-medium truncate">{event.title}</div>
+                  <div className="text-xs opacity-75 truncate">
+                    {moment(event.start).format("HH:mm")}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-1 max-w-xs">
+                  <p className="font-medium">
+                    {event.resource.finalCaption.substring(0, 100)}...
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {moment(event.start).format("MMM DD, YYYY HH:mm")}
+                  </p>
+                  <p className="text-xs">Platform: {event.resource.platform}</p>
+                  <p className="text-xs">Status: {event.resource.status}</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
   };
 
   const eventStyleGetter = (event: CalendarEvent) => {
@@ -602,11 +601,13 @@ const CalendarView: React.FC = () => {
               </div>
 
               <div className="flex gap-4">
-                <img
-                  src={selectedPost.image.url}
-                  alt={selectedPost.image.originalName}
-                  className="w-32 h-32 object-cover rounded-lg"
-                />
+                {selectedPost.image && (
+                  <img
+                    src={selectedPost.image.url}
+                    alt={selectedPost.image.originalName}
+                    className="w-32 h-32 object-cover rounded-lg"
+                  />
+                )}
                 <div className="flex-1">
                   <p className="text-sm text-gray-600 mb-2">
                     {selectedPost.image.originalName}

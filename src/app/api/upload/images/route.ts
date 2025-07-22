@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs";
 import connectDB from "@/lib/db";
 import Image from "@/models/Image";
+import type {IImage} from "@/models/Image";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const images: any[] = [];
+    const images: IImage[] = [];
 
     for (const file of files) {
       const allowedTypes = [
@@ -101,16 +102,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       const savedImage = await imageDoc.save();
 
-      images.push({
-        _id: savedImage._id,
-        filename: savedImage.filename,
-        originalName: savedImage.originalName,
-        url: savedImage.url,
-        size: savedImage.size,
-        mimetype: savedImage.mimetype,
-        uploadedAt: savedImage.uploadedAt,
-        isUsed: savedImage.isUsed,
-      });
+      images.push(savedImage as IImage);
     }
 
     return NextResponse.json({
@@ -119,10 +111,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       images: images,
       total: images.length,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Upload error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Upload failed: " + error.message },
+      { error: "Upload failed: " + message },
       { status: 500 }
     );
   }
@@ -143,10 +136,11 @@ export async function GET(): Promise<NextResponse> {
       images: images,
       total: images.length,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getting images:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to get images: " + error.message },
+      { error: "Failed to get images: " + message },
       { status: 500 }
     );
   }
@@ -167,12 +161,13 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     if (image.filePath && fs.existsSync(image.filePath)) {
       fs.unlinkSync(image.filePath);
     }
-    await Image.deleteOne({ _id: imageId });
-    return NextResponse.json({ success: true, message: "Image deleted" });
-  } catch (error: any) {
+    await Image.findByIdAndDelete(imageId);
+    return NextResponse.json({ success: true, message: "Image deleted successfully" });
+  } catch (error: unknown) {
     console.error("Delete error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Delete failed: " + error.message },
+      { error: "Delete failed: " + message },
       { status: 500 }
     );
   }

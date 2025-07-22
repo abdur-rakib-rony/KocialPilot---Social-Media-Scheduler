@@ -48,10 +48,14 @@ interface SchedulePreferences {
   sunday: DaySchedule;
 }
 
+interface NextPost {
+  scheduledTime: string;
+}
+
 interface SchedulerStatus {
   running: boolean;
   activeJobs: number;
-  nextPost: any;
+  nextPost: NextPost | null;
 }
 
 const SchedulePreferences: React.FC = () => {

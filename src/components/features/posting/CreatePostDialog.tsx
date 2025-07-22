@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -146,14 +147,14 @@ const CreatePostDialog: React.FC = () => {
       if (response.ok) {
         resetDialog();
         setOpen(false);
-        alert("Post created successfully!");
+        toast("Post created successfully!");
       } else {
         console.error("Post creation failed:", result.error);
-        alert("Failed to create post: " + result.error);
+        toast("Failed to create post: " + result.error);
       }
     } catch (error) {
       console.error("Post creation error:", error);
-      alert("Failed to create post. Please try again.");
+      toast("Failed to create post. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -207,7 +208,7 @@ const CreatePostDialog: React.FC = () => {
               </h3>
               <RadioGroup
                 value={mode}
-                onValueChange={setMode}
+                onValueChange={(value) => setMode(value as "manual" | "automatic")}
                 className="grid grid-cols-2 gap-4"
               >
                 <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50">

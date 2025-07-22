@@ -3,6 +3,9 @@ import connectDB from "@/lib/db";
 import Post from "@/models/Post";
 import fs from "fs";
 import path from "path";
+import FormData from "form-data";
+import axios from "axios";
+import type { Readable } from "stream";
 
 const FB_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
 const FB_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
@@ -18,7 +21,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { postId } = await request.json();
+    const body: unknown = await request.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 }
+      );
+    }
+    const { postId } = body as { postId?: string };
 
     if (!postId) {
       return NextResponse.json(
@@ -102,12 +112,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       message: "Post published to Facebook successfully",
       platformPostId: fbPostId,
     });
-  } catch (error: any) {
+  } catch (error) {
+    let errorMsg = "Facebook posting failed";
+    if (error instanceof Error) {
+      errorMsg += ": " + error.message;
+    }
     console.error("Facebook posting error:", error);
-    return NextResponse.json(
-      { error: "Facebook posting failed: " + error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
 
@@ -117,24 +128,24 @@ async function uploadPhotoToFacebook(
 ): Promise<string | null> {
   try {
     const formData = new FormData();
-    const blob = new Blob([imageBuffer], { type: "image/jpeg" });
-    formData.append("source", blob, filename);
+    formData.append("source", imageBuffer, {
+      filename,
+      contentType: "image/jpeg",
+    });
     formData.append("access_token", FB_ACCESS_TOKEN!);
 
-    const response = await fetch(
+    const response = await axios.post(
       `https://graph.facebook.com/v18.0/${FB_PAGE_ID}/photos`,
+      formData,
       {
-        method: "POST",
-        body: formData,
+        headers: formData.getHeaders(),
       }
     );
 
-    const result = await response.json();
-
-    if (response.ok && result.id) {
-      return result.id;
+    if (response.data && response.data.id) {
+      return response.data.id;
     } else {
-      console.error("Facebook photo upload error:", result);
+      console.error("Facebook photo upload error:", response.data);
       return null;
     }
   } catch (error) {
@@ -156,7 +167,7 @@ async function createFacebookPost(
 
     const formData = new URLSearchParams();
     Object.entries(postData).forEach(([key, value]) => {
-      formData.append(key, value);
+      formData.append(key, value ?? "");
     });
 
     const response = await fetch(
@@ -196,27 +207,37 @@ export async function GET(): Promise<NextResponse> {
     const response = await fetch(
       `https://graph.facebook.com/v18.0/${FB_PAGE_ID}?access_token=${FB_ACCESS_TOKEN}`
     );
-    const result = await response.json();
+    const result: Record<string, unknown> = await response.json();
 
     if (response.ok) {
       return NextResponse.json({
         connected: true,
         pageInfo: {
-          id: result.id,
-          name: result.name,
-          category: result.category,
+          id: result["id"],
+          name: result["name"],
+          category: result["category"],
         },
       });
     } else {
+      const errorMsg =
+        typeof result["error"] === "object" &&
+        result["error"] !== null &&
+        "message" in result["error"]
+          ? (result["error"] as { message?: string }).message
+          : "Failed to connect to Facebook";
       return NextResponse.json({
         connected: false,
-        error: result.error?.message || "Failed to connect to Facebook",
+        error: errorMsg,
       });
     }
-  } catch (error: any) {
+  } catch (error) {
+    let errorMsg = "Connection test failed";
+    if (error instanceof Error) {
+      errorMsg += ": " + error.message;
+    }
     return NextResponse.json({
       connected: false,
-      error: "Connection test failed: " + error.message,
+      error: errorMsg,
     });
   }
 }

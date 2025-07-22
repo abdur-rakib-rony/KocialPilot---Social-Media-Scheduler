@@ -41,7 +41,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       model: "smart-generator",
       timestamp: new Date().toISOString(),
     });
-  } catch (error: any) {
+  } catch {
     const fallbackCaption = "Beautiful moment worth sharing ✨";
     return NextResponse.json({
       success: true,

@@ -40,6 +40,7 @@
     "date-fns": "^4.1.0",
     "facebook-nodejs-business-sdk": "^23.0.1",
     "fb": "^2.0.0",
+    "form-data": "^4.0.4",
     "framer-motion": "^12.23.6",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.525.0",

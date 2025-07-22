@@ -1,5 +1,6 @@
 "use client";
 import React, { useCallback, useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useDropzone } from "react-dropzone";
 import { Upload, X, Image, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -70,11 +71,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUploaded }) => {
           onImagesUploaded?.(newImages);
         } else {
           console.error("Upload failed:", result.error);
-          alert("Upload failed: " + result.error);
+          toast("Upload failed: " + result.error);
         }
       } catch (error) {
         console.error("Upload error:", error);
-        alert("Upload failed. Please try again.");
+        toast("Upload failed. Please try again.");
       } finally {
         setIsUploading(false);
       }
@@ -102,10 +103,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUploaded }) => {
         setUploadedImages(newImages);
         onImagesUploaded?.(newImages);
       } else {
-        alert(result.error || "Failed to delete image.");
+        toast(result.error || "Failed to delete image.");
       }
     } catch (error) {
-      alert("Delete failed. Please try again.");
+      toast("Delete failed. Please try again.");
     }
   };
 
@@ -130,15 +131,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUploaded }) => {
 
   return (
     <div className="w-full">
-      <motion.div
+      <div
         {...getRootProps()}
         className={`
           border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
           ${isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-gray-400"}
           ${isUploading ? "pointer-events-none opacity-50" : ""}
         `}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
       >
         <input {...getInputProps()} />
 
@@ -166,7 +165,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUploaded }) => {
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
 
       <div className="mt-4 flex justify-between items-center">
         <h3 className="text-lg font-semibold flex items-center">
@@ -185,10 +184,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUploaded }) => {
       </div>
 
       {uploadedImages.length > 0 && (
-        <motion.div
+        <div
           className="mt-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
         >
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <AnimatePresence>
@@ -206,7 +203,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUploaded }) => {
                     alt={image.originalName}
                     className="w-full h-32 object-cover"
                   />
-
+  
                   <motion.button
                     onClick={() => removeImage(image._id)}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -215,13 +212,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUploaded }) => {
                   >
                     <X className="w-4 h-4" />
                   </motion.button>
-
+  
                   {image.isUsed && (
                     <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
                       Used
                     </div>
                   )}
-
+  
                   <div className="p-3">
                     <p className="text-xs font-medium truncate mb-1">
                       {image.originalName}
@@ -237,7 +234,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUploaded }) => {
               ))}
             </AnimatePresence>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {uploadedImages.length === 0 && !isLoading && (

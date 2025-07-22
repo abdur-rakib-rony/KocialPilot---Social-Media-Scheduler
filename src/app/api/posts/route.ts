@@ -3,6 +3,21 @@ import connectDB from "@/lib/db";
 import Post from "@/models/Post";
 import Image from "@/models/Image";
 
+type PostStatus = "queued" | "posted" | "failed";
+type Platform = "facebook" | "instagram" | string;
+
+interface PostFilter {
+  status?: PostStatus;
+  platform?: Platform;
+}
+
+interface PostUpdate {
+  status?: PostStatus;
+  scheduledTime?: Date;
+  finalCaption?: string;
+  platform?: Platform;
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     await connectDB();
@@ -39,11 +54,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const postData = new Post({
-      imageId: imageId,
-      caption: caption,
-      selectedVariation: selectedVariation,
-      customCaption: customCaption,
-      finalCaption: finalCaption,
+      imageId,
+      caption,
+      selectedVariation,
+      customCaption,
+      finalCaption,
       scheduledTime: scheduledDate,
       platform: platform || "facebook",
       isAutomatic: isAutomatic || false,
@@ -71,10 +86,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         createdAt: savedPost.createdAt,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Post creation error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Post creation failed: " + error.message },
+      { error: "Post creation failed: " + message },
       { status: 500 }
     );
   }
@@ -85,12 +101,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
-    const platform = searchParams.get("platform");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const page = parseInt(searchParams.get("page") || "1");
+    const status = searchParams.get("status") as PostStatus | null;
+    const platform = searchParams.get("platform") as Platform | null;
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const page = parseInt(searchParams.get("page") || "1", 10);
 
-    const filter: any = {};
+    const filter: PostFilter = {};
     if (status) filter.status = status;
     if (platform) filter.platform = platform;
 
@@ -121,16 +137,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       success: true,
       posts: formattedPosts,
       pagination: {
-        page: page,
-        limit: limit,
-        total: total,
+        page,
+        limit,
+        total,
         pages: Math.ceil(total / limit),
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Get posts error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to get posts: " + error.message },
+      { error: "Failed to get posts: " + message },
       { status: 500 }
     );
   }
@@ -150,7 +167,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const updateData: any = {};
+    const updateData: PostUpdate = {};
     if (status) updateData.status = status;
     if (scheduledTime) updateData.scheduledTime = new Date(scheduledTime);
     if (finalCaption) updateData.finalCaption = finalCaption;
@@ -169,10 +186,11 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       message: "Post updated successfully",
       post: updatedPost,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Post update error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Post update failed: " + error.message },
+      { error: "Post update failed: " + message },
       { status: 500 }
     );
   }
@@ -219,10 +237,11 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       success: true,
       message: "Post deleted successfully",
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Post deletion error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Post deletion failed: " + error.message },
+      { error: "Post deletion failed: " + message },
       { status: 500 }
     );
   }

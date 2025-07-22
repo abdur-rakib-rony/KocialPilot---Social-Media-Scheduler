@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import cron from "node-cron";
+import cron, { ScheduledTask } from "node-cron";
 import connectDB from "@/lib/db";
 import Post from "@/models/Post";
 
-const activeJobs = new Map<string, cron.ScheduledTask>();
+const activeJobs = new Map<string, ScheduledTask>();
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -33,9 +33,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { error: "Invalid action. Use 'start', 'stop', or 'status'" },
       { status: 400 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
+    let errorMessage = "Scheduler operation failed";
+    if (error instanceof Error) {
+      errorMessage += ": " + error.message;
+    }
     return NextResponse.json(
-      { error: "Scheduler operation failed: " + error.message },
+      { error: errorMessage },
       { status: 500 }
     );
   }
@@ -65,9 +69,13 @@ export async function GET(): Promise<NextResponse> {
       schedulerRunning: activeJobs.size > 0,
       nextPost: upcomingPosts[0] || null,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    let errorMessage = "Failed to get scheduler status";
+    if (error instanceof Error) {
+      errorMessage += ": " + error.message;
+    }
     return NextResponse.json(
-      { error: "Failed to get scheduler status: " + error.message },
+      { error: errorMessage },
       { status: 500 }
     );
   }
@@ -86,7 +94,6 @@ async function startScheduler() {
       }
     },
     {
-      scheduled: false,
     }
   );
 
@@ -97,7 +104,7 @@ async function startScheduler() {
 }
 
 async function stopScheduler() {
-  activeJobs.forEach((job, id) => {
+  activeJobs.forEach((job) => {
     job.stop();
     job.destroy();
   });
@@ -129,7 +136,9 @@ async function checkAndProcessPosts() {
         console.error(`Failed to process post ${post._id}:`, error);
         await Post.findByIdAndUpdate(post._id, {
           status: "failed",
-          errorMessage: `Processing failed: ${error.message}`,
+          errorMessage: `Processing failed: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
         });
       }
     }
@@ -138,7 +147,16 @@ async function checkAndProcessPosts() {
   }
 }
 
-async function processPost(post: any) {
+interface SchedulerPost {
+  _id: string;
+  platform: string;
+  scheduledTime?: Date;
+  status?: string;
+  imageId?: string;
+  errorMessage?: string;
+}
+
+async function processPost(post: SchedulerPost) {
   console.log(`Processing post ${post._id} for ${post.platform}`);
 
   try {
@@ -178,6 +196,6 @@ async function postToFacebook(postId: string) {
 
     return await response.json();
   } catch (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
